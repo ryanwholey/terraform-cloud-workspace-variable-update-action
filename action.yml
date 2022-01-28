@@ -1,0 +1,27 @@
+name: Update Terraform Cloud Workspace Variables
+description: Takes a set of decrypted
+inputs:
+  organization:
+    description: Terraform organization
+    required: true
+
+  token:
+    description: Terraform Cloud token
+    required: true
+
+  address:
+    description: Terraform Cloud address
+    required: false
+    default: app.terraform.io
+
+  key_id:
+    required: true
+    description: KMS key ID
+    default: https://app.terraform.io
+
+  secrets_path:
+    required: true
+    description: Path to the JSON secrets file
+runs:
+  using: docker
+  image: Dockerfile
