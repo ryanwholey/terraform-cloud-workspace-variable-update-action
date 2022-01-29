@@ -56,8 +56,13 @@ func Run(inputs Inputs) error {
 		return err
 	}
 
+	fmt.Println(string(b))
+	fmt.Println(inputs.KeyID)
+
 	plaintext := map[string]string{}
 	for name, ciphertext := range secrets.Locals.Secrets {
+
+		fmt.Println(ciphertext)
 
 		out, err := kmsClient.Decrypt(ctx, &kms.DecryptInput{
 			CiphertextBlob: []byte(ciphertext),
