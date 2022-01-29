@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
@@ -91,6 +92,7 @@ func Run(inputs Inputs) error {
 
 		for _, v := range varList.Items {
 			if _, ok := plaintext[v.Key]; ok {
+				log.Println(v.Workspace.ID, v.Workspace.Name, v.Key)
 				if _, err := tfeClient.Variables.Update(ctx, workspace.ID, v.ID, tfe.VariableUpdateOptions{
 					Value: tfe.String(plaintext[v.Key]),
 				}); err != nil {
