@@ -18,7 +18,7 @@ inputs:
     required: true
     description: Path to the JSON secrets file
 
-  encrypted_secrets_json:
+  secrets_json:
     required: false
     description: JSON string object of key value encrypted secret vars
 runs:
