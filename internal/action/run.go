@@ -2,6 +2,7 @@ package action
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -47,7 +48,7 @@ func Run(inputs Inputs) error {
 
 	b, err := ioutil.ReadFile(inputs.SecretsPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to read secrets file: %w", err)
 	}
 
 	var secrets EncryptedSecrets
@@ -56,17 +57,16 @@ func Run(inputs Inputs) error {
 		return err
 	}
 
-	fmt.Println(string(b))
-	fmt.Println(inputs.KeyID)
-
 	plaintext := map[string]string{}
 	for name, ciphertext := range secrets.Locals.Secrets {
 
-		fmt.Println(ciphertext)
+		decoded, err := base64.StdEncoding.DecodeString(ciphertext)
+		if err != nil {
+			return fmt.Errorf("failed to base64 decode ciphertext: %w", err)
+		}
 
 		out, err := kmsClient.Decrypt(ctx, &kms.DecryptInput{
-			CiphertextBlob: []byte(ciphertext),
-			KeyId:          &inputs.KeyID,
+			CiphertextBlob: []byte(decoded),
 		})
 		if err != nil {
 			return err
@@ -81,8 +81,6 @@ func Run(inputs Inputs) error {
 	if err != nil {
 		return err
 	}
-
-	fmt.Println("next page: ", workspaceList.NextPage)
 
 	for _, workspace := range workspaceList.Items {
 		varList, err := tfeClient.Variables.List(ctx, workspace.ID, tfe.VariableListOptions{
