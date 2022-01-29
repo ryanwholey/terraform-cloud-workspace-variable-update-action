@@ -14,11 +14,7 @@ inputs:
     required: false
     default: https://app.terraform.io
 
-  secrets_path:
-    required: true
-    description: Path to the JSON secrets file
-
-  secrets_json:
+  secrets:
     required: false
     description: JSON string object of key value encrypted secret vars
 runs:

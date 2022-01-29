@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -17,8 +16,7 @@ type Inputs struct {
 	Token        string
 	Address      string
 	Organization string
-	SecretsPath  string
-	SecretsJSON  string
+	Secrets      string
 }
 
 type EncryptedSecretsSecrets struct {
@@ -47,25 +45,14 @@ func Run(inputs Inputs) error {
 
 	kmsClient := kms.NewFromConfig(cfg)
 
-	b, err := ioutil.ReadFile(inputs.SecretsPath)
-	if err != nil {
-		return fmt.Errorf("failed to read secrets file: %w", err)
-	}
+	var secrets map[string]string
 
-	var secrets EncryptedSecrets
-
-	if err := json.Unmarshal(b, &secrets); err != nil {
-		return err
-	}
-
-	var secretsJSON map[string]string
-
-	if err := json.Unmarshal([]byte(inputs.SecretsJSON), &secretsJSON); err != nil {
+	if err := json.Unmarshal([]byte(inputs.Secrets), &secrets); err != nil {
 		return err
 	}
 
 	plaintext := map[string]string{}
-	for name, ciphertext := range secrets.Locals.Secrets {
+	for name, ciphertext := range secrets {
 
 		decoded, err := base64.StdEncoding.DecodeString(ciphertext)
 		if err != nil {
