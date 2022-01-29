@@ -75,6 +75,7 @@ func Run(inputs Inputs) error {
 		plaintext[name] = string(out.Plaintext)
 	}
 
+	// TODO: handle pagination
 	workspaceList, err := tfeClient.Workspaces.List(ctx, inputs.Organization, tfe.WorkspaceListOptions{
 		ListOptions: tfe.ListOptions{},
 	})
@@ -83,6 +84,7 @@ func Run(inputs Inputs) error {
 	}
 
 	for _, workspace := range workspaceList.Items {
+		// TODO: handle pagination
 		varList, err := tfeClient.Variables.List(ctx, workspace.ID, tfe.VariableListOptions{
 			ListOptions: tfe.ListOptions{},
 		})
@@ -92,7 +94,8 @@ func Run(inputs Inputs) error {
 
 		for _, v := range varList.Items {
 			if _, ok := plaintext[v.Key]; ok {
-				log.Println(v.Workspace.ID, v.Workspace.Name, v.Key)
+				log.Printf("Updating %s (%s): %s\n", workspace.Name, workspace.ID, v.Key)
+
 				if _, err := tfeClient.Variables.Update(ctx, workspace.ID, v.ID, tfe.VariableUpdateOptions{
 					Value: tfe.String(plaintext[v.Key]),
 				}); err != nil {
