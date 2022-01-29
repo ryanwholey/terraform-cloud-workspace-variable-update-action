@@ -6,4 +6,4 @@ COPY . ./
 
 RUN go build
 
-ENTRYPOINT ["/src/terraform-remote-state-action"]
+ENTRYPOINT ["/src/terraform-cloud-update-workspace-variables"]
