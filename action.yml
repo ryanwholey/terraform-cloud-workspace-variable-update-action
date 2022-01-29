@@ -12,7 +12,7 @@ inputs:
   address:
     description: Terraform Cloud address
     required: false
-    default: app.terraform.io
+    default: https://app.terraform.io
 
   key_id:
     required: true
