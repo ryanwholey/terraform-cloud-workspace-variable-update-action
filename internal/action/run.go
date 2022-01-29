@@ -18,6 +18,7 @@ type Inputs struct {
 	Address      string
 	Organization string
 	SecretsPath  string
+	SecretsJSON  string
 }
 
 type EncryptedSecretsSecrets struct {
@@ -54,6 +55,12 @@ func Run(inputs Inputs) error {
 	var secrets EncryptedSecrets
 
 	if err := json.Unmarshal(b, &secrets); err != nil {
+		return err
+	}
+
+	var secretsJSON map[string]string
+
+	if err := json.Unmarshal([]byte(inputs.SecretsJSON), &secretsJSON); err != nil {
 		return err
 	}
 
