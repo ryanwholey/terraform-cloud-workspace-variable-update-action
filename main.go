@@ -10,7 +10,6 @@ func main() {
 		Organization: githubactions.GetInput("organization"),
 		Token:        githubactions.GetInput("token"),
 		Address:      githubactions.GetInput("address"),
-		KeyID:        githubactions.GetInput("key_id"),
 		SecretsPath:  githubactions.GetInput("secrets_path"),
 	}); err != nil {
 		githubactions.Fatalf("Error: %s", err)

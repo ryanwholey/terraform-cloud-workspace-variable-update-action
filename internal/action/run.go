@@ -16,7 +16,6 @@ type Inputs struct {
 	Token        string
 	Address      string
 	Organization string
-	KeyID        string
 	SecretsPath  string
 }
 

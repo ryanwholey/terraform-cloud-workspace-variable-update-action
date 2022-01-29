@@ -14,11 +14,6 @@ inputs:
     required: false
     default: https://app.terraform.io
 
-  key_id:
-    required: true
-    description: KMS key ID
-    default: https://app.terraform.io
-
   secrets_path:
     required: true
     description: Path to the JSON secrets file
