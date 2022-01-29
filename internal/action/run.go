@@ -19,14 +19,6 @@ type Inputs struct {
 	Secrets      string
 }
 
-type EncryptedSecretsSecrets struct {
-	Secrets map[string]string
-}
-
-type EncryptedSecrets struct {
-	Locals EncryptedSecretsSecrets
-}
-
 func Run(inputs Inputs) error {
 	ctx := context.Background()
 
