@@ -14,9 +14,10 @@ inputs:
     required: false
     default: https://app.terraform.io
 
-  secrets:
+  variables:
     required: false
-    description: JSON string object of key value encrypted secret vars
+    description: JSON string object of Terraform Cloud variables
+
 runs:
   using: docker
   image: Dockerfile
