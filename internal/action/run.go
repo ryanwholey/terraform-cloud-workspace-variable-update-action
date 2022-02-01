@@ -2,13 +2,9 @@ package action
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"log"
 
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/hashicorp/go-tfe"
 )
 
@@ -16,7 +12,15 @@ type Inputs struct {
 	Token        string
 	Address      string
 	Organization string
-	Secrets      string
+	Variables    string
+}
+
+type Variable struct {
+	Key         string `json:"key"`
+	Value       string `json:"value"`
+	Category    string `json:"category"`
+	Sensitive   bool   `json:"sensitive"`
+	Description string `json:"description"`
 }
 
 func Run(inputs Inputs) error {
@@ -30,35 +34,15 @@ func Run(inputs Inputs) error {
 		return err
 	}
 
-	cfg, err := config.LoadDefaultConfig(ctx)
-	if err != nil {
+	var variables []Variable
+
+	if err := json.Unmarshal([]byte(inputs.Variables), &variables); err != nil {
 		return err
 	}
 
-	kmsClient := kms.NewFromConfig(cfg)
-
-	var secrets map[string]string
-
-	if err := json.Unmarshal([]byte(inputs.Secrets), &secrets); err != nil {
-		return err
-	}
-
-	plaintext := map[string]string{}
-	for name, ciphertext := range secrets {
-
-		decoded, err := base64.StdEncoding.DecodeString(ciphertext)
-		if err != nil {
-			return fmt.Errorf("failed to base64 decode ciphertext: %w", err)
-		}
-
-		out, err := kmsClient.Decrypt(ctx, &kms.DecryptInput{
-			CiphertextBlob: []byte(decoded),
-		})
-		if err != nil {
-			return err
-		}
-
-		plaintext[name] = string(out.Plaintext)
+	varsMap := map[string]Variable{}
+	for _, v := range variables {
+		varsMap[v.Key] = v
 	}
 
 	// TODO: handle pagination
@@ -79,11 +63,11 @@ func Run(inputs Inputs) error {
 		}
 
 		for _, v := range varList.Items {
-			if _, ok := plaintext[v.Key]; ok {
+			if _, ok := varsMap[v.Key]; ok {
 				log.Printf("Updating %s (%s): %s\n", workspace.Name, workspace.ID, v.Key)
 
 				if _, err := tfeClient.Variables.Update(ctx, workspace.ID, v.ID, tfe.VariableUpdateOptions{
-					Value: tfe.String(plaintext[v.Key]),
+					Value: tfe.String(v.Value),
 				}); err != nil {
 					return err
 				}
