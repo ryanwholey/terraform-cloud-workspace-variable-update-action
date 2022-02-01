@@ -3,7 +3,6 @@ package action
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 
 	"github.com/hashicorp/go-tfe"
@@ -34,8 +33,6 @@ func Run(inputs Inputs) error {
 	if err != nil {
 		return err
 	}
-
-	fmt.Println(inputs.Variables)
 
 	var variables []Variable
 
