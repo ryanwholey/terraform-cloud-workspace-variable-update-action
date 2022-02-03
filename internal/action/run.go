@@ -67,8 +67,7 @@ func Run(inputs Inputs) error {
 
 		for _, variable := range variableUpdates {
 			if existingVar, ok := variableByKey[variable.Key]; ok {
-				fmt.Println(variable.Key, existingVar.Sensitive, existingVar.Value, variable.Value)
-				if existingVar.Sensitive || existingVar.Value == variable.Value {
+				if existingVar.Sensitive || existingVar.Value != variable.Value {
 					log.Printf("Updating variable %s for workspace %s\n", variable.Key, workspace.Name)
 					if _, err := tfeClient.Variables.Update(ctx, workspace.ID, existingVar.ID, tfe.VariableUpdateOptions{
 						Value:       &variable.Value,
