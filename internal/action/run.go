@@ -35,9 +35,9 @@ func Run(inputs Inputs) error {
 		return err
 	}
 
-	var variables []Variable
+	var variableUpdates []Variable
 
-	if err := json.Unmarshal([]byte(inputs.Variables), &variables); err != nil {
+	if err := json.Unmarshal([]byte(inputs.Variables), &variableUpdates); err != nil {
 		return err
 	}
 
@@ -51,15 +51,37 @@ func Run(inputs Inputs) error {
 	}
 
 	for _, workspace := range workspaceList.Items {
-		for _, variable := range variables {
-			if _, err := tfeClient.Variables.Create(ctx, workspace.ID, tfe.VariableCreateOptions{
-				Key:         &variable.Key,
-				Value:       &variable.Value,
-				Description: &variable.Description,
-				Category:    (*tfe.CategoryType)(&variable.Category),
-				Sensitive:   &variable.Sensitive,
-			}); err != nil {
-				fmt.Println(fmt.Errorf("error creating var: %w", err))
+
+		variableList, err := tfeClient.Variables.List(ctx, workspace.ID, tfe.VariableListOptions{
+			ListOptions: tfe.ListOptions{},
+		})
+		if err != nil {
+			return err
+		}
+
+		variableByKey := map[string]*tfe.Variable{}
+		for _, variable := range variableList.Items {
+			variableByKey[variable.Key] = variable
+		}
+
+		for _, variable := range variableUpdates {
+			if existingVar, ok := variableByKey[variable.Key]; !ok {
+				if _, err := tfeClient.Variables.Create(ctx, workspace.ID, tfe.VariableCreateOptions{
+					Key:         &variable.Key,
+					Value:       &variable.Value,
+					Description: &variable.Description,
+					Category:    (*tfe.CategoryType)(&variable.Category),
+					Sensitive:   &variable.Sensitive,
+				}); err != nil {
+					return fmt.Errorf("error creating variable %s in workspace %s: %w", variable.Key, workspace.Name, err)
+				}
+			} else {
+				if _, err := tfeClient.Variables.Update(ctx, workspace.ID, existingVar.ID, tfe.VariableUpdateOptions{
+					Value:       &variable.Value,
+					Description: &variable.Description,
+				}); err != nil {
+					return fmt.Errorf("failed to update variable %s in workspace %s: %w", variable.Key, workspace.Name, err)
+				}
 			}
 		}
 	}
