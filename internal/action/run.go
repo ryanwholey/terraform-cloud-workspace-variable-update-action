@@ -49,10 +49,12 @@ func Run(inputs Inputs) error {
 		return err
 	}
 
+	fmt.Println(workspaceList.Items)
 	var workspaces []*tfe.Workspace
 	if inputs.WorkspaceTag != "" {
 		for _, workspace := range workspaceList.Items {
 			for _, tag := range workspace.Tags {
+				fmt.Println(tag.Name, inputs.WorkspaceTag)
 				if tag.Name == inputs.WorkspaceTag {
 					workspaces = append(workspaces, workspace)
 				}
