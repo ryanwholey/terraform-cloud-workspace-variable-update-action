@@ -18,6 +18,10 @@ inputs:
     required: false
     description: JSON string object of Terraform Cloud variables
 
+  workspace_tag_filter:
+    required: false
+    description: Update workspace variables in workspaces with a the passed tag
+
 runs:
   using: docker
   image: Dockerfile

@@ -3,7 +3,7 @@ package action
 import (
 	"context"
 	"encoding/json"
-	"log"
+	"fmt"
 
 	"github.com/hashicorp/go-tfe"
 )
@@ -13,6 +13,7 @@ type Inputs struct {
 	Address      string
 	Organization string
 	Variables    string
+	WorkspaceTag string
 }
 
 type Variable struct {
@@ -40,11 +41,6 @@ func Run(inputs Inputs) error {
 		return err
 	}
 
-	varsMap := map[string]Variable{}
-	for _, v := range variables {
-		varsMap[v.Key] = v
-	}
-
 	// TODO: handle pagination
 	workspaceList, err := tfeClient.Workspaces.List(ctx, inputs.Organization, tfe.WorkspaceListOptions{
 		ListOptions: tfe.ListOptions{},
@@ -53,24 +49,29 @@ func Run(inputs Inputs) error {
 		return err
 	}
 
-	for _, workspace := range workspaceList.Items {
-		// TODO: handle pagination
-		varList, err := tfeClient.Variables.List(ctx, workspace.ID, tfe.VariableListOptions{
-			ListOptions: tfe.ListOptions{},
-		})
-		if err != nil {
-			return err
-		}
-
-		for _, v := range varList.Items {
-			if _, ok := varsMap[v.Key]; ok {
-				log.Printf("Updating %s (%s): %s\n", workspace.Name, workspace.ID, v.Key)
-
-				if _, err := tfeClient.Variables.Update(ctx, workspace.ID, v.ID, tfe.VariableUpdateOptions{
-					Value: tfe.String(v.Value),
-				}); err != nil {
-					return err
+	var workspaces []*tfe.Workspace
+	if inputs.WorkspaceTag != "" {
+		for _, workspace := range workspaceList.Items {
+			for _, tag := range workspace.Tags {
+				if tag.Name == inputs.WorkspaceTag {
+					workspaces = append(workspaces, workspace)
 				}
+			}
+		}
+	} else {
+		workspaces = workspaceList.Items
+	}
+
+	for _, workspace := range workspaces {
+		for _, variable := range variables {
+			if _, err := tfeClient.Variables.Create(ctx, workspace.ID, tfe.VariableCreateOptions{
+				Key:         &variable.Key,
+				Value:       &variable.Value,
+				Description: &variable.Description,
+				Category:    (*tfe.CategoryType)(&variable.Category),
+				Sensitive:   &variable.Sensitive,
+			}); err != nil {
+				fmt.Println(fmt.Errorf("error creating var: %w", err))
 			}
 		}
 	}

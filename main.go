@@ -11,6 +11,7 @@ func main() {
 		Token:        githubactions.GetInput("token"),
 		Address:      githubactions.GetInput("address"),
 		Variables:    githubactions.GetInput("variables"),
+		WorkspaceTag: githubactions.GetInput("workspace_tag"),
 	}); err != nil {
 		githubactions.Fatalf("Error: %s", err)
 	}
