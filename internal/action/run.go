@@ -49,11 +49,13 @@ func Run(inputs Inputs) error {
 		return err
 	}
 
-	fmt.Println(workspaceList.Items, inputs.WorkspaceTag, inputs)
 	var workspaces []*tfe.Workspace
 	if inputs.WorkspaceTag != "" {
+		fmt.Println("tag filter exists")
 		for _, workspace := range workspaceList.Items {
+			fmt.Println("looking at ws", workspace.Name)
 			for _, tag := range workspace.Tags {
+				fmt.Println("tag:", tag.Name, tag)
 				fmt.Println(tag.Name, inputs.WorkspaceTag)
 				if tag.Name == inputs.WorkspaceTag {
 					workspaces = append(workspaces, workspace)
