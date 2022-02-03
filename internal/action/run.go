@@ -89,7 +89,6 @@ func Run(inputs Inputs) error {
 				}); err != nil {
 					return fmt.Errorf("error creating variable %s in workspace %s: %w", variable.Key, workspace.Name, err)
 				}
-
 			}
 		}
 	}
