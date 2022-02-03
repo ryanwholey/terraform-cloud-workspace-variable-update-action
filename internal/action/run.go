@@ -66,18 +66,8 @@ func Run(inputs Inputs) error {
 		}
 
 		for _, variable := range variableUpdates {
-			if existingVar, ok := variableByKey[variable.Key]; !ok {
-				log.Printf("Creating variable %s for workspace %s\n", variable.Key, workspace.Name)
-				if _, err := tfeClient.Variables.Create(ctx, workspace.ID, tfe.VariableCreateOptions{
-					Key:         &variable.Key,
-					Value:       &variable.Value,
-					Description: &variable.Description,
-					Category:    (*tfe.CategoryType)(&variable.Category),
-					Sensitive:   &variable.Sensitive,
-				}); err != nil {
-					return fmt.Errorf("error creating variable %s in workspace %s: %w", variable.Key, workspace.Name, err)
-				}
-			} else {
+			if existingVar, ok := variableByKey[variable.Key]; ok {
+				fmt.Println(variable.Key, existingVar.Sensitive, existingVar.Value, variable.Value)
 				if existingVar.Sensitive || existingVar.Value == variable.Value {
 					log.Printf("Updating variable %s for workspace %s\n", variable.Key, workspace.Name)
 					if _, err := tfeClient.Variables.Update(ctx, workspace.ID, existingVar.ID, tfe.VariableUpdateOptions{
@@ -89,6 +79,18 @@ func Run(inputs Inputs) error {
 				} else {
 					log.Printf("No change for variable %s in workspace %s\n", variable.Key, workspace.Name)
 				}
+			} else {
+				log.Printf("Creating variable %s for workspace %s\n", variable.Key, workspace.Name)
+				if _, err := tfeClient.Variables.Create(ctx, workspace.ID, tfe.VariableCreateOptions{
+					Key:         &variable.Key,
+					Value:       &variable.Value,
+					Description: &variable.Description,
+					Category:    (*tfe.CategoryType)(&variable.Category),
+					Sensitive:   &variable.Sensitive,
+				}); err != nil {
+					return fmt.Errorf("error creating variable %s in workspace %s: %w", variable.Key, workspace.Name, err)
+				}
+
 			}
 		}
 	}
