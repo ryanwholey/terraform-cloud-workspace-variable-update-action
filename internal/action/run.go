@@ -43,30 +43,14 @@ func Run(inputs Inputs) error {
 
 	// TODO: handle pagination
 	workspaceList, err := tfeClient.Workspaces.List(ctx, inputs.Organization, tfe.WorkspaceListOptions{
+		Tags:        &inputs.WorkspaceTag,
 		ListOptions: tfe.ListOptions{},
 	})
 	if err != nil {
 		return err
 	}
 
-	var workspaces []*tfe.Workspace
-	if inputs.WorkspaceTag != "" {
-		fmt.Println("tag filter exists")
-		for _, workspace := range workspaceList.Items {
-			fmt.Println("looking at ws", workspace.Name)
-			for _, tag := range workspace.Tags {
-				fmt.Println("tag:", tag.Name, tag)
-				fmt.Println(tag.Name, inputs.WorkspaceTag)
-				if tag.Name == inputs.WorkspaceTag {
-					workspaces = append(workspaces, workspace)
-				}
-			}
-		}
-	} else {
-		workspaces = workspaceList.Items
-	}
-
-	for _, workspace := range workspaces {
+	for _, workspace := range workspaceList.Items {
 		for _, variable := range variables {
 			if _, err := tfeClient.Variables.Create(ctx, workspace.ID, tfe.VariableCreateOptions{
 				Key:         &variable.Key,
