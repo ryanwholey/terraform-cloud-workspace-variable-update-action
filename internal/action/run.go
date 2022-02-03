@@ -49,7 +49,7 @@ func Run(inputs Inputs) error {
 		return err
 	}
 
-	fmt.Println(workspaceList.Items)
+	fmt.Println(workspaceList.Items, inputs.WorkspaceTag, inputs)
 	var workspaces []*tfe.Workspace
 	if inputs.WorkspaceTag != "" {
 		for _, workspace := range workspaceList.Items {
