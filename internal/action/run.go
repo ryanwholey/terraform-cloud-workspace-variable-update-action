@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 
 	"github.com/hashicorp/go-tfe"
 )
@@ -66,6 +67,7 @@ func Run(inputs Inputs) error {
 
 		for _, variable := range variableUpdates {
 			if existingVar, ok := variableByKey[variable.Key]; !ok {
+				log.Printf("Creating variable %s for workspace %s\n", variable.Key, workspace.Name)
 				if _, err := tfeClient.Variables.Create(ctx, workspace.ID, tfe.VariableCreateOptions{
 					Key:         &variable.Key,
 					Value:       &variable.Value,
@@ -76,11 +78,16 @@ func Run(inputs Inputs) error {
 					return fmt.Errorf("error creating variable %s in workspace %s: %w", variable.Key, workspace.Name, err)
 				}
 			} else {
-				if _, err := tfeClient.Variables.Update(ctx, workspace.ID, existingVar.ID, tfe.VariableUpdateOptions{
-					Value:       &variable.Value,
-					Description: &variable.Description,
-				}); err != nil {
-					return fmt.Errorf("failed to update variable %s in workspace %s: %w", variable.Key, workspace.Name, err)
+				if existingVar.Sensitive || existingVar.Value == variable.Value {
+					log.Printf("Updating variable %s for workspace %s\n", variable.Key, workspace.Name)
+					if _, err := tfeClient.Variables.Update(ctx, workspace.ID, existingVar.ID, tfe.VariableUpdateOptions{
+						Value:       &variable.Value,
+						Description: &variable.Description,
+					}); err != nil {
+						return fmt.Errorf("failed to update variable %s in workspace %s: %w", variable.Key, workspace.Name, err)
+					}
+				} else {
+					log.Printf("No change for variable %s in workspace %s\n", variable.Key, workspace.Name)
 				}
 			}
 		}
